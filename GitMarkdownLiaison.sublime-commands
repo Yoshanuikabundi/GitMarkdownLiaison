@@ -1,0 +1,15 @@
+[
+  { "caption": "Preferences: GitMarkdownLiaison",
+    "command": "edit_settings",
+    "args": {
+      "base_file": "${packages}/GitMarkdownLiaison/GitMarkdownLiaison.sublime-settings",
+      "default": "{\n\t$0\n}\n"
+    }
+  },
+  { "caption": "GitMarkdownLiaison: Open Readme",
+    "command": "open_file",
+    "args": {
+      "file": "${packages}/GitMarkdownLiaison/README.md"
+    }
+  },
+]
