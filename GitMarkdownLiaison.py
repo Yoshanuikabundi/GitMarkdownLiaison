@@ -2,6 +2,7 @@ import sublime
 import sublime_plugin
 from pathlib import Path
 from functools import partial
+import re
 
 class GitMarkdownLiaisonCommand(sublime_plugin.TextCommand):
     def get_settings(self, setting, default=None):
@@ -37,41 +38,34 @@ class GitMarkdownLiaisonCommand(sublime_plugin.TextCommand):
     def is_visible(self):
         return False
 
-    def find_and_replace_all(self, edit, pattern, string, flags=0, selector=None):
-        regions = self.view.find_all(pattern, flags=flags)
+    def find_and_replace_all(self, edit, pattern, repl, count=0, flags=0):
+        selector = self.get_settings("sentence_newline_selector")
+        regions = self.view.find_by_selector(selector)
         for region in regions:
-            point = region.begin()
-            if selector and not self.view.match_selector(point, selector):
-                break
-            self.view.replace(edit, region, string)
+            text = self.view.substr(region)
+            text = re.sub(
+                pattern=pattern,
+                repl=repl,
+                string=text,
+                count=count,
+                flags=flags
+            )
+            self.view.replace(edit, region, text)
+
 
 
 class RemoveNewlinesLiaison(GitMarkdownLiaisonCommand):
+    pattern = re.compile(r'\.\n(\n*)')
     def run(self, edit):
-        find_and_replace_all = partial(
-            self.find_and_replace_all,
-            edit,
-            flags=sublime.LITERAL,
-            selector=self.get_settings("sentence_newline_selector")
-        )
-
-        find_and_replace_all(r' +\n', '\n', flags=0)
-        find_and_replace_all('.\n', '. ')
-        find_and_replace_all('. \n', '.\n\n')
-
-        return
+        self.find_and_replace_all(edit, self.pattern, r'. \1')
 
 
 class InsertNewlinesLiaison(GitMarkdownLiaisonCommand):
+    pattern1 = re.compile(r'\.(\n+)')
+    pattern2 = re.compile(r'\. ([^\n])')
     def run(self, edit):
-        self.find_and_replace_all(
-            edit,
-            '. ',
-            '.\n',
-            flags=sublime.LITERAL,
-            selector=self.get_settings("sentence_newline_selector")
-        )
-        return
+        self.find_and_replace_all(edit, self.pattern1, r'.\n\1')
+        self.find_and_replace_all(edit, self.pattern2, r'.\n\1')
 
 
 class GitMarkdownLiaisonListener(sublime_plugin.EventListener):
