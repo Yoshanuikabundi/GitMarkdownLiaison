@@ -12,4 +12,11 @@
       "file": "${packages}/GitMarkdownLiaison/README.md"
     }
   },
+  // These are here if you want them, but you probably don't
+  // { "caption": "GitMarkdownLiaison: Remove newlines",
+  //   "command": "remove_newlines_liaison"
+  // },
+  // { "caption": "GitMarkdownLiaison: Insert newlines",
+  //   "command": "insert_newlines_liaison"
+  // },
 ]

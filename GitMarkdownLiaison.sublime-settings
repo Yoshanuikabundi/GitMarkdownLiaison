@@ -6,7 +6,7 @@
     // Whether the plugin is active - set false here so you can activate it on a per-project basis
     "active": false,
     // Selector in which newlines will be inserted/removed
-    "sentence_newline_selector": "text.html.markdown meta.paragraph.markdown",
+    "sentence_newline_selector": "text.html.markdown (meta.paragraph.markdown | meta.paragraph.list.markdown)",
 
     // Commands to run on the view to transform the text before and after saving
     "to_disk_command": "insert_newlines_liaison",

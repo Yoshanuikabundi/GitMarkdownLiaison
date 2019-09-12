@@ -48,9 +48,6 @@ class GitMarkdownLiaisonCommand(sublime_plugin.TextCommand):
     def get_settings(self, *args, **kwargs):
         return get_settings(self.view, *args, **kwargs)
 
-    def is_visible(self):
-        return False
-
     def find_and_replace_all(self, edit, pattern, repl, count=0, flags=0):
         selector = self.get_settings("sentence_newline_selector")
         regions = self.view.find_by_selector(selector)
@@ -66,9 +63,9 @@ class GitMarkdownLiaisonCommand(sublime_plugin.TextCommand):
             self.view.replace(edit, region, text)
 
 
-
 class RemoveNewlinesLiaison(GitMarkdownLiaisonCommand):
     pattern = re.compile(r'\.\n(\n*)')
+
     def run(self, edit):
         self.find_and_replace_all(edit, self.pattern, r'. \1')
 
@@ -82,22 +79,47 @@ class InsertNewlinesLiaison(GitMarkdownLiaisonCommand):
         self.find_and_replace_all(edit, self.pattern2, r'.\n\1')
 
 
+def reverse_dict_lookup(mapping, value):
+    for k, v in mapping.items():
+        if v == value:
+            return k
+    raise ValueError('Value not in dict')
+
+
 class GitMarkdownLiaisonListener(sublime_plugin.EventListener):
-    state_file = sublime.load_settings('GML_state.sublime-settings')
-    _unmodified_views_hashes = state_file.get('views', {})
+    @classmethod
+    def refresh_settings(cls):
+        cls.state_file = sublime.load_settings('GML_state.sublime-settings')
+        cls._unmodified_views_hashes = cls.state_file.get('hashes', {})
+        cls._unmodified_views_filenames = cls.state_file.get('filenames', {})
+        cls._views_filenames = set(cls._unmodified_views_filenames.values())
+
+    @classmethod
+    def save_settings(cls):
+        cls.state_file.set('hashes', cls._unmodified_views_hashes or {})
+        cls.state_file.set('filenames', cls._unmodified_views_filenames or {})
+        sublime.save_settings('GML_state.sublime-settings')
 
     @property
     def unmodified_views_hashes(self):
         '''Handle sublime's tardy loading of settings'''
         if self._unmodified_views_hashes is None:
-            self.__class__.state_file = sublime.load_settings(
-                'GML_state.sublime-settings'
-            )
-            self.__class__._unmodified_views_hashes = self.state_file.get(
-                'views',
-                {}
-            )
+            self.refresh_settings()
         return self._unmodified_views_hashes
+
+    @property
+    def unmodified_views_filenames(self):
+        '''Handle sublime's tardy loading of settings'''
+        if self._unmodified_views_filenames is None:
+            self.refresh_settings()
+        return self._unmodified_views_filenames
+
+    @property
+    def views_filenames(self):
+        '''Handle sublime's tardy loading of settings'''
+        if self._views_filenames is None:
+            self.refresh_settings()
+        return self._views_filenames
 
     def on_pre_save(self, view):
         if not gml_active_on_view(view):
@@ -143,12 +165,21 @@ class GitMarkdownLiaisonListener(sublime_plugin.EventListener):
 
         Note: This is hacky, and co-opts setting the scratch setting for
         buffers. Hopefully I've included enough checks that it won't cause
-        any problems.'''
+        any problems, I've erred on the side of never unsetting scratch
+        unless I'm sure this plugin set it.'''
         if not gml_active_on_view(view):
             return
 
         view_id = str(view.id())
+        view_fn = view.file_name()
         if view_id not in self.unmodified_views_hashes:
+            if view_fn in self.views_filenames:
+                self.rename_view(view_fn, view_id)
+            else:
+                return
+
+        if self.unmodified_views_filenames[view_id] != view_fn:
+            self.clear_unmodified(view)
             return
 
         if self.unmodified_views_hashes[view_id] == hash_buffer(view):
@@ -156,13 +187,23 @@ class GitMarkdownLiaisonListener(sublime_plugin.EventListener):
         else:
             view.set_scratch(False)
 
-    def on_close(self, view):
-        '''Clean up the state when a view closes'''
-        if gml_active_on_view(view):
-            view_id = str(view.id())
-            del self.unmodified_views_hashes[view_id]
-            self.state_file.set('views', self.unmodified_views_hashes)
-            sublime.save_settings('GML_state.sublime-settings')
+    def rename_view(self, view_fn, new_view_id):
+        '''Create new entries in views dicts using existing hashes'''
+        key = reverse_dict_lookup(self.unmodified_views_filenames, view_fn)
+
+        mappings = [
+            self.unmodified_views_hashes,
+            self.unmodified_views_filenames
+        ]
+        for mapping in mappings:
+            mapping[new_view_id] = mapping[key]
+        self.save_settings()
+
+    def clear_unmodified(self, view):
+        view_id = str(view.id())
+        del self.unmodified_views_hashes[view_id]
+        del self.unmodified_views_filenames[view_id]
+        self.save_settings()
 
     def set_unmodified(self, view):
         '''Store the hash of the unmodified view after a save/load'''
@@ -171,7 +212,10 @@ class GitMarkdownLiaisonListener(sublime_plugin.EventListener):
             return
 
         self.unmodified_views_hashes[view_id] = hash_buffer(view)
-        self.state_file.set('views', self.unmodified_views_hashes)
-        sublime.save_settings('GML_state.sublime-settings')
+        self.unmodified_views_filenames[view_id] = view.file_name()
+        self.save_settings()
 
         view.set_scratch(True)
+
+
+GitMarkdownLiaisonListener.refresh_settings()
