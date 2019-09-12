@@ -23,7 +23,7 @@ Did you like it?
 GitMarkdownLiaison can be configured via the `GitMarkdownLiaison.sublime-settings` file, accessible through the `Preferences -> Package Settings -> GitMarkdownLiaison` menu.
 It can also be configured in your project file:
 
-```json
+```javascript
 {
     "settings":
     {
