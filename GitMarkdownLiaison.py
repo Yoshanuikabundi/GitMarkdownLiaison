@@ -75,16 +75,23 @@ class GitMarkdownLiaisonCommand(sublime_plugin.TextCommand):
 
 class RemoveNewlinesLiaison(GitMarkdownLiaisonCommand):
     pattern1 = re.compile(r'\.\n(\n*)')
-    pattern2 = re.compile(r'\. +\n')
-    pattern2_noremovetrailingwhitespace = re.compile(r'\. \n')
+    pattern2_removetrailingwhitespace = re.compile(r' +\n')
+    pattern2_keeptrailingwhitespace = re.compile(r'\. \n')
 
     def run(self, edit):
         self.find_and_replace_all(edit, self.pattern1, r'. \1')
         if self.view.settings().get('remove_trailing_whitespace_on_save'):
-            pattern2 = self.pattern2
+            self.find_and_replace_all(
+                edit,
+                self.pattern2_removetrailingwhitespace,
+                r'\n'
+            )
         else:
-            pattern2 = self.pattern2_noremovetrailingwhitespace
-        self.find_and_replace_all(edit, pattern2, r'.\n')
+            self.find_and_replace_all(
+                edit,
+                self.pattern2_keeptrailingwhitespace,
+                r'.\n'
+            )
 
 
 class InsertNewlinesLiaison(GitMarkdownLiaisonCommand):
