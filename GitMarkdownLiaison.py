@@ -4,6 +4,12 @@ from pathlib import Path
 import re
 from zlib import adler32
 
+def reverse_dict_lookup(mapping, value):
+    for k, v in mapping.items():
+        if v == value:
+            return k
+    raise ValueError('Value not in dict')
+
 def hash_buffer(view):
     '''Deterministic hash of the text in the buffer underlying a view'''
     whole_buffer_region = sublime.Region(0, view.size())
@@ -64,10 +70,12 @@ class GitMarkdownLiaisonCommand(sublime_plugin.TextCommand):
 
 
 class RemoveNewlinesLiaison(GitMarkdownLiaisonCommand):
-    pattern = re.compile(r'\.\n(\n*)')
+    pattern1 = re.compile(r'\.\n(\n*)')
+    pattern2 = re.compile(r'\. \n')
 
     def run(self, edit):
-        self.find_and_replace_all(edit, self.pattern, r'. \1')
+        self.find_and_replace_all(edit, self.pattern1, r'. \1')
+        self.find_and_replace_all(edit, self.pattern2, r'.\n')
 
 
 class InsertNewlinesLiaison(GitMarkdownLiaisonCommand):
@@ -78,12 +86,6 @@ class InsertNewlinesLiaison(GitMarkdownLiaisonCommand):
         self.find_and_replace_all(edit, self.pattern1, r'.\n\1')
         self.find_and_replace_all(edit, self.pattern2, r'.\n\1')
 
-
-def reverse_dict_lookup(mapping, value):
-    for k, v in mapping.items():
-        if v == value:
-            return k
-    raise ValueError('Value not in dict')
 
 
 class GitMarkdownLiaisonListener(sublime_plugin.EventListener):
