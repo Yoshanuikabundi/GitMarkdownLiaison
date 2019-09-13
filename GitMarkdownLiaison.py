@@ -4,11 +4,13 @@ from pathlib import Path
 import re
 from zlib import adler32
 
+
 def reverse_dict_lookup(mapping, value):
     for k, v in mapping.items():
         if v == value:
             return k
     raise ValueError('Value not in dict')
+
 
 def hash_buffer(view):
     '''Deterministic hash of the text in the buffer underlying a view'''
@@ -16,6 +18,7 @@ def hash_buffer(view):
     text = view.substr(whole_buffer_region)
     text_bytes = bytes(text, 'UTF-8')
     return str(adler32(text_bytes) & 0xffffffff)
+
 
 def get_settings(view, setting, default=None):
     '''Get a setting from the project file if available'''
@@ -30,6 +33,7 @@ def get_settings(view, setting, default=None):
     else:
         settings = sublime.load_settings('GitMarkdownLiaison.sublime-settings')
         return settings.get(setting, default)
+
 
 def gml_active_on_view(view):
     '''True if GitMarkdownLiaison should be active on view'''
@@ -90,7 +94,6 @@ class InsertNewlinesLiaison(GitMarkdownLiaisonCommand):
     def run(self, edit):
         self.find_and_replace_all(edit, self.pattern1, r'.\n\1')
         self.find_and_replace_all(edit, self.pattern2, r'.\n\1')
-
 
 
 class GitMarkdownLiaisonListener(sublime_plugin.EventListener):
