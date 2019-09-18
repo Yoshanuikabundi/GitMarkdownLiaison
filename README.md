@@ -1,7 +1,6 @@
 # GitMarkdownLiaison
 
-A Sublime Text package that assists in version control of Markdown text files by quietly inserting linebreaks after every sentence.
-## But why?
+A Sublime Text package that assists in version control of Markdown text files by quietly inserting linebreaks after every sentence. ## But why?
 
 Git is a bit of a pain to use with files that mostly contain prose.
 Git works on a line-by-line basis, but English ideas work sentence-by-sentence.
@@ -45,23 +44,19 @@ It can also be configured in your project file:
 ```
 
 Note that the `settings` and `git_markdown_liaison` sections are only for when configuration is happening in a project file.
-An example of both the settings and project files are included.
- - `active`: Master control switch for GitMarkdownLiaison.
+An example of both the settings and project files are included.  - `active`:
+Master control switch for GitMarkdownLiaison.
 If this is False, as it is by default, nothing will happen.
 I set it as False, and then enable it for individual projects where I want it.
+
+ - `extensions`: A list of filename extensions for which to enable GitMarkdownLiaison
+
+ - `sentence_newline_selector`: The Sublime selector for the scopes where the newline manipulation should happen. By default, it just happens in Markdown paragraphs. Note that this is referred to only in the liaison commands, and will not apply to any other commands used with the following two options.  
  
+ - `to_disk_command` and `from_disk_command`: Commands to run on either side of saving or loading a file. `to_disk_command` is run before every save, and `from_disk_command` is run after every save and load. The plugin will take care of making sure the edits are transparent to Sublime. It will also ensure that they are only run in the appropriate files with respect to extension and activity, but **not** with respect to the selector.
 
-- `extensions`: A list of filename extensions for which to enable GitMarkdownLiaison
+ Between these last four options, you can probably make this work for whatever you like. 
 
- - `sentence_newline_selector`: The Sublime selector for the scopes where the newline manipulation should happen.
-By default, it just happens in Markdown paragraphs.
-Note that this is referred to only in the liaison commands, and will not apply to any other commands used with the following two options.
- - `to_disk_command` and `from_disk_command`: Commands to run on either side of saving or loading a file.
-`to_disk_command` is run before every save, and `from_disk_command` is run after every save and load.
-The plugin will take care of making sure the edits are transparent to Sublime.
-It will also ensure that they are only run in the appropriate files with respect to extension and activity, but **not** with respect to the selector.
-
- Between these last four options, you can probably make this work for whatever you like.
 ## Known Issues
 
 If a file insists that it hasn't been changed since you saved it, no matter how much you change it, try putting:
@@ -70,4 +65,4 @@ sublime.active_window().active_view().set_scratch(False)
 ```
 into the console (Ctrl+`) and saving.
 This shouldn't happen but who knows.
-Also I make no claims with regard to speed, though my computer seems to cope. 
+Also I make no claims with regard to speed, though my computer seems to cope.
