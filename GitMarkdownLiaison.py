@@ -74,12 +74,12 @@ class GitMarkdownLiaisonCommand(sublime_plugin.TextCommand):
 
 
 class RemoveNewlinesLiaison(GitMarkdownLiaisonCommand):
-    pattern1 = re.compile(r'\.\n(\n*)')
-    pattern2_removetrailingwhitespace = re.compile(r' +\n')
-    pattern2_keeptrailingwhitespace = re.compile(r'\. \n')
+    pattern1 = re.compile(r'([\.:])\n(\n*)')
+    pattern2_removetrailingwhitespace = re.compile(r'[^\S\r\n]+\n')
+    pattern2_keeptrailingwhitespace = re.compile(r'([\.:])[^\S\r\n]\n')
 
     def run(self, edit):
-        self.find_and_replace_all(edit, self.pattern1, r'. \1')
+        self.find_and_replace_all(edit, self.pattern1, r'\1 \2')
         if self.view.settings().get('remove_trailing_whitespace_on_save'):
             self.find_and_replace_all(
                 edit,
@@ -90,17 +90,17 @@ class RemoveNewlinesLiaison(GitMarkdownLiaisonCommand):
             self.find_and_replace_all(
                 edit,
                 self.pattern2_keeptrailingwhitespace,
-                r'.\n'
+                r'\1\n'
             )
 
 
 class InsertNewlinesLiaison(GitMarkdownLiaisonCommand):
-    pattern1 = re.compile(r'\.(\n+)')
-    pattern2 = re.compile(r'\. ([^\n])')
+    pattern1 = re.compile(r'([\.:])(\n+)')
+    pattern2 = re.compile(r'([\.:])[^\S\r\n]([A-Z])')
 
     def run(self, edit):
-        self.find_and_replace_all(edit, self.pattern1, r'.\n\1')
-        self.find_and_replace_all(edit, self.pattern2, r'.\n\1')
+        self.find_and_replace_all(edit, self.pattern1, r'\1\n\2')
+        self.find_and_replace_all(edit, self.pattern2, r'\1\n\2')
 
 
 class GitMarkdownLiaisonListener(sublime_plugin.EventListener):
@@ -233,6 +233,7 @@ class GitMarkdownLiaisonListener(sublime_plugin.EventListener):
         self.save_settings()
 
         view.set_scratch(True)
+        view.reset_reference_document()
 
 
 GitMarkdownLiaisonListener.refresh_settings()
