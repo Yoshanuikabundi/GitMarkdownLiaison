@@ -1,6 +1,8 @@
 # GitMarkdownLiaison
 
-A Sublime Text package that assists in version control of Markdown text files by quietly inserting linebreaks after every sentence. ## But why?
+A Sublime Text package that assists in version control of Markdown text files by quietly inserting linebreaks after every sentence.
+
+## But why?
 
 Git is a bit of a pain to use with files that mostly contain prose.
 Git works on a line-by-line basis, but English ideas work sentence-by-sentence.
