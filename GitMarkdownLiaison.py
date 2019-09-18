@@ -25,7 +25,7 @@ def get_settings(view, setting, default=None):
     try:
         project_data = view.window().project_data()
         project_settings = project_data['settings']['git_markdown_liaison']
-    except (KeyError, AttributeError):
+    except (KeyError, AttributeError, TypeError):
         project_settings = {}
 
     if setting in project_settings:
