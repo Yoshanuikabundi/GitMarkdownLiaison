@@ -13,12 +13,25 @@
                   "file": "${packages}/GitMarkdownLiaison/README.md"
                 }
               },
+              { "caption": "Example project file",
+                "command": "open_file",
+                "args": {
+                  "file": "${packages}/GitMarkdownLiaison/GitMarkdownLiaison.sublime-project"
+                }
+              },
               { "caption": "-" },
               { "caption": "Settings",
                 "command": "edit_settings",
                 "args": {
                   "base_file": "${packages}/GitMarkdownLiaison/GitMarkdownLiaison.sublime-settings",
                   "default": "{\n\t$0\n}\n"
+                }
+              },
+              { "caption": "Commands",
+                "command": "edit_settings",
+                "args": {
+                  "base_file": "${packages}/GitMarkdownLiaison/GitMarkdownLiaison.sublime-commands",
+                  "default": "[\n\t$0\n]\n"
                 }
               },
             ]

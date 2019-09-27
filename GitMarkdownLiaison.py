@@ -74,33 +74,17 @@ class GitMarkdownLiaisonCommand(sublime_plugin.TextCommand):
 
 
 class RemoveNewlinesLiaison(GitMarkdownLiaisonCommand):
-    pattern1 = re.compile(r'([\.:])\n(\n*[^\n])')
-    pattern2_removetrailingwhitespace = re.compile(r'[^\S\r\n]+\n([^\n])')
-    pattern2_keeptrailingwhitespace = re.compile(r'([\.:])[^\S\r\n]\n([^\n])')
-
     def run(self, edit):
-        self.find_and_replace_all(edit, self.pattern1, r'\1 \2')
-        if self.view.settings().get('remove_trailing_whitespace_on_save'):
-            self.find_and_replace_all(
-                edit,
-                self.pattern2_removetrailingwhitespace,
-                r'\n\1'
-            )
-        else:
-            self.find_and_replace_all(
-                edit,
-                self.pattern2_keeptrailingwhitespace,
-                r'\1\n\2'
-            )
+        pattern = re.compile(self.get_settings('remove_lines_find_re'))
+        repl = self.get_settings('remove_lines_replace')
+        self.find_and_replace_all(edit, pattern, repl)
 
 
 class InsertNewlinesLiaison(GitMarkdownLiaisonCommand):
-    pattern1 = re.compile(r'([\.:])(\n+[^\n])')
-    pattern2 = re.compile(r'([\.:])[^\S\r\n]([A-Z])')
-
     def run(self, edit):
-        self.find_and_replace_all(edit, self.pattern1, r'\1\n\2')
-        self.find_and_replace_all(edit, self.pattern2, r'\1\n\2')
+        pattern = re.compile(self.get_settings('insert_lines_find_re'))
+        repl = self.get_settings('insert_lines_replace')
+        self.find_and_replace_all(edit, pattern, repl)
 
 
 class GitMarkdownLiaisonListener(sublime_plugin.EventListener):
@@ -109,7 +93,10 @@ class GitMarkdownLiaisonListener(sublime_plugin.EventListener):
         cls.state_file = sublime.load_settings('GML_state.sublime-settings')
         cls._unmodified_views_hashes = cls.state_file.get('hashes', {})
         cls._unmodified_views_filenames = cls.state_file.get('filenames', {})
-        cls._views_filenames = set(cls._unmodified_views_filenames.values())
+        try:
+            cls._views_filenames = set(cls._unmodified_views_filenames.values())
+        except AttributeError:
+            cls._views_filenames = None
 
     @classmethod
     def save_settings(cls):
